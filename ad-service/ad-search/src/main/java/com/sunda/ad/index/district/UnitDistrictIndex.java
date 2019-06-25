@@ -1,6 +1,7 @@
 package com.sunda.ad.index.district;
 
 import com.sunda.ad.index.IndexAware;
+import com.sunda.ad.search.vo.feature.DistrictFeature;
 import com.sunda.ad.utils.CommonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
 /**
  * Created by 老蹄子 on 2019/5/31 下午9:00
@@ -84,5 +86,24 @@ public class UnitDistrictIndex implements IndexAware<String, Set<Long>> {
         log.info("UnitDistrictIndex, after delete: {}", unitDistrictMap);
     }
 
+    public boolean match(Long adUnitId,
+                         List<DistrictFeature.ProvinceAndCity> districts) {
 
+        if (unitDistrictMap.containsKey(adUnitId) &&
+                CollectionUtils.isNotEmpty(unitDistrictMap.get(adUnitId))) {
+
+            Set<String> unitDistricts = unitDistrictMap.get(adUnitId);
+
+            List<String> targetDistricts = districts.stream()
+                    .map(
+                            d -> CommonUtils.stringConcat(
+                                    d.getProvince(), d.getCity()
+                            )
+                    ).collect(Collectors.toList());
+
+            return CollectionUtils.isSubCollection(targetDistricts, unitDistricts);
+        }
+
+        return false;
+    }
 }
